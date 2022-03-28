@@ -86,9 +86,9 @@ def on_message(client, userdata, msg):
         if msg.topic == Zaehlersensorpfad:   # JSON String vom Zaehler Sensor auslesen
             if msg.payload != '{"value": null}' and msg.payload != b'{"value": null}':
                 jsonpayload = json.loads(msg.payload)
-                powercurr = round(float(jsonpayload["Zaehler"]["Power_curr"]), 2)
-                totalin = round(float(jsonpayload["Zaehler"]["Total_in"]), 2)
-                totalout = round(float(jsonpayload["Zaehler"]["Total_out"]), 2)
+                powercurr = float(jsonpayload["Zaehler"]["Power_curr"])
+                totalin = float(jsonpayload["Zaehler"]["Total_in"])
+                totalout = float(jsonpayload["Zaehler"]["Total_out"])
             else:
                 print("Antwort vom MQTT war Null und wurde ignoriert")
 
@@ -114,7 +114,7 @@ class DbusDummyService:
 
     # Create the mandatory objects
     self._dbusservice.add_path('/DeviceInstance', deviceinstance)
-    self._dbusservice.add_path('/ProductId', 16) # value used in ac_sensor_bridge.cpp of dbus-cgwacs
+    self._dbusservice.add_path('/ProductId', 45069) # value used in ac_sensor_bridge.cpp of dbus-cgwacs
     self._dbusservice.add_path('/ProductName', productname)
     self._dbusservice.add_path('/FirmwareVersion', 0.1)
     self._dbusservice.add_path('/HardwareVersion', 0)
@@ -130,16 +130,16 @@ class DbusDummyService:
   
   
   def _update(self):
-    self._dbusservice['/Ac/Power'] = powercurr # positive: consumption, negative: feed into grid
-    self._dbusservice['/Ac/L1/Voltage'] = "230"
-    self._dbusservice['/Ac/L2/Voltage'] = "230"
-    self._dbusservice['/Ac/L3/Voltage'] = "230"
-    self._dbusservice['/Ac/L1/Current'] = "1"
-    self._dbusservice['/Ac/L2/Current'] = "1"
-    self._dbusservice['/Ac/L3/Current'] = "1"
-    self._dbusservice['/Ac/L1/Power'] = powercurr/3
-    self._dbusservice['/Ac/L2/Power'] = powercurr/3
-    self._dbusservice['/Ac/L3/Power'] = powercurr/3
+    self._dbusservice['/Ac/Power'] =  powercurr # positive: consumption, negative: feed into grid
+    self._dbusservice['/Ac/L1/Voltage'] = 230
+    self._dbusservice['/Ac/L2/Voltage'] = 230
+    self._dbusservice['/Ac/L3/Voltage'] = 230
+    self._dbusservice['/Ac/L1/Current'] = round(powercurr/3 / 230 ,2)
+    self._dbusservice['/Ac/L2/Current'] = round(powercurr/3 / 230 ,2)
+    self._dbusservice['/Ac/L3/Current'] = round(powercurr/3 / 230 ,2)
+    self._dbusservice['/Ac/L1/Power'] = round(powercurr/3, 2)
+    self._dbusservice['/Ac/L2/Power'] = round(powercurr/3, 2)
+    self._dbusservice['/Ac/L3/Power'] = round(powercurr/3, 2)
 
     self._dbusservice['/Ac/Energy/Forward'] = totalin
     self._dbusservice['/Ac/Energy/Reverse'] = totalout
@@ -164,7 +164,7 @@ def main():
   DBusGMainLoop(set_as_default=True)
   
   pvac_output = DbusDummyService(
-    servicename='com.victronenergy.grid',
+    servicename='com.victronenergy.grid.cgwacs_ttyUSB0_mb1',
     deviceinstance=0,
     paths={
       '/Ac/Power': {'initial': 0},
