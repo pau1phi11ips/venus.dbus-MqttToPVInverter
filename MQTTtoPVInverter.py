@@ -38,7 +38,7 @@ path_UpdateIndex = '/UpdateIndex'
 # MQTT Setup
 broker_address = "192.168.1.134"
 MQTTNAME = "MQTTtoMeter"
-sensor_path = "Path"
+sensor_path = "N/b827eb278b4b/pvinverter"
 
 # set variables
 connected = 0
@@ -84,7 +84,7 @@ def on_message(client, userdata, msg):
     try:
 
         global powercurr, totalin, totalout
-        if msg.topic == sensor_path:   # JSON String vom Zaehler Sensor auslesen
+        if msg.topic == sensor_path:   # JSON String from MQTT
             if msg.payload != '{"value": null}' and msg.payload != b'{"value": null}':
                 jsonpayload = json.loads(msg.payload)
                 powercurr = float(jsonpayload["Zaehler"]["Power_curr"])
